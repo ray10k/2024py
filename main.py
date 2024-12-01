@@ -4,7 +4,7 @@ from time import perf_counter
 def run_day(day:int) -> bool:
     assert day in range(1,26)
     
-    day_line = f"{current_day:02}"
+    day_line = f"{day:02}"
     parse, star_one, star_two = eval(f"(day_{day_line}.parse_input, day_{day_line}.star_one, day_{day_line}.star_two)")
     input_file = f"input/day_{day_line}.txt"
     input_path = Path(__file__).parent / input_file
