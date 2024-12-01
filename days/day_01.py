@@ -1,19 +1,34 @@
 from dataclasses import dataclass;
 
 @dataclass
-class InputItem:
+class ListEntry:
     """Representation of one 'unit' of input-data. May represent as little
     as a single character from input, as much as the entire file, or anywhere
     inbetween."""
-    a: str
+    left:int
+    right:int
 
-IType = InputItem
+IType = ListEntry
 
 def parse_input(input_content:str) -> list[IType]:
-    return list()
+    retval = list()
+    for line in input_content.strip().splitlines():
+        left,right = line.split("   ")
+        retval.append(ListEntry(int(left),int(right)))
+    return retval
 
 def star_one(data:list[IType]) -> str:
-    pass
+    left_list = list()
+    right_list = list()
+    for item in data:
+        left_list.append(item.left)
+        right_list.append(item.right)
+    left_list.sort()
+    right_list.sort()
+    retval = 0
+    for left,right in zip(left_list,right_list):
+        retval += abs(left - right)
+    return f"{retval}"
 
 def star_two(data:list[IType]) -> str:
     pass
