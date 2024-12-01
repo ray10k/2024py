@@ -31,7 +31,16 @@ def star_one(data:list[IType]) -> str:
     return f"{retval}"
 
 def star_two(data:list[IType]) -> str:
-    pass
+    from collections import Counter
+    left = list()
+    right = Counter()
+    for item in data:
+        left.append(item.left)
+        right.update((item.right,))
+    retval = 0
+    for item in left:
+        retval += (item * right.get(item,0))
+    return f"{retval}"
 
 if __name__ == "__main__":
     from pathlib import Path
