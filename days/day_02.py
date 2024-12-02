@@ -1,19 +1,35 @@
 from dataclasses import dataclass;
 
 @dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+class ReactorReport:
+    """One full reactor-report."""
+    levels:list[int]
 
-IType = InputItem
+IType = ReactorReport
 
 def parse_input(input_content:str) -> list[IType]:
-    return list()
+    retval = list()
+    for line in input_content.splitlines():
+        levels = [int(x) for x in line.split(' ')]
+        retval.append(ReactorReport(levels))
+    return retval
 
 def star_one(data:list[IType]) -> str:
-    pass
+    safe_count = 0
+    
+    def check_falling(l,r) -> bool:
+        return l > r and (l - r) in range(1,4)
+
+    def check_rising(l,r) -> bool:
+        return r > l and (r - l) in range(1,4)
+    
+    for report in data:
+        lvl = report.levels
+        check = check_rising if lvl[0] < lvl[1] else check_falling
+        if all(check(l,r) for l,r in zip(lvl,lvl[1:])):
+            safe_count += 1
+    
+    return f"{safe_count}"
 
 def star_two(data:list[IType]) -> str:
     pass
