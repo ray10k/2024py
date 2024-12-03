@@ -13,7 +13,19 @@ def star_one(data:str) -> str:
     return retval
 
 def star_two(data:str) -> str:
-    pass
+    retval = 0
+    enabled = True
+    pattern = re.compile(r"(mul)\((\d{1,3}),(\d{1,3})\)|(do)\(\)|(don't)\(\)")
+    for instruction in pattern.finditer(data):
+        i_type = instruction.groups()
+        if i_type[4] == "don't":
+            enabled = False
+        elif i_type[3] == "do":
+            enabled = True
+        elif i_type[0] == "mul" and enabled:
+            a,b = instruction.group(2,3)
+            retval += int(a) * int(b)
+    return retval
 
 if __name__ == "__main__":
     from pathlib import Path
