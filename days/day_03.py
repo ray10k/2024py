@@ -1,21 +1,18 @@
-from dataclasses import dataclass;
+import re
 
-@dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+def parse_input(input_content:str) -> str:
+    #Just going to use the string-data as, data.
+    return input_content
 
-IType = InputItem
+def star_one(data:str) -> str:
+    retval = 0
+    pattern = re.compile(r"mul\((\d{1,3}),(\d{1,3})\)")
+    for mul in pattern.finditer(data):
+        a,b = mul.groups()
+        retval += int(a) * int(b)
+    return retval
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
-
-def star_one(data:list[IType]) -> str:
-    pass
-
-def star_two(data:list[IType]) -> str:
+def star_two(data:str) -> str:
     pass
 
 if __name__ == "__main__":
