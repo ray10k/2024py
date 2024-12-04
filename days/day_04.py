@@ -14,6 +14,11 @@ class WordSearch:
         if x >= 0 and x < self.width and y >= 0 and y < self.height:
             return self.search[(y * (self.width+1)) + x]
         return None
+    
+    def diagonals(self,x:int, y:int) -> tuple[str,str,str,str]|None:
+        if x >= 1 and x < (self.width-1) and y >= 1 and y < (self.height-1):
+            return (self.coordinate(x-1,y-1),self.coordinate(x+1,y-1),self.coordinate(x+1,y+1),self.coordinate(x-1,y+1))
+        return None
 
 IType = WordSearch
 
@@ -37,7 +42,6 @@ def find_xmas(start_coord:tuple[int,int],d_offset:tuple[int,int],search:WordSear
     return xmas_coords(start_coord,d_offset,search) is not None
 
 def star_one(data:IType) -> str:
-    print(data.width,data.height)
     retval = 0
     valids = set()
     for y in range(data.height):
@@ -60,7 +64,20 @@ def star_one(data:IType) -> str:
     return f"{retval}"
 
 def star_two(data:IType) -> str:
-    pass
+    retval = 0
+    for y in range(data.height):
+        for x in range(data.width):
+            if data.coordinate(x,y) == 'A':
+                surrounding = data.diagonals(x,y)
+                if surrounding is None:
+                    continue
+                for step in range(4):
+                    if surrounding[step] == 'M':
+                        string = "".join(surrounding[(step+i)%4] for i in range(4))
+                        if string == "MMSS":
+                            retval += 1
+                            continue
+    return f"{retval}"
 
 if __name__ == "__main__":
     from pathlib import Path
