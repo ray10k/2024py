@@ -1,21 +1,65 @@
 from dataclasses import dataclass;
 
 @dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+class WordSearch:
+    """A whole bunch of XMAS."""
+    search: str
+    """The lines of the word-field, as a single string."""
+    width: int
+    """The number of characters per line."""
+    height: int
+    """The number of lines."""
+    
+    def coordinate(self,x:int, y:int) -> str|None:
+        if x >= 0 and x < self.width and y >= 0 and y < self.height:
+            return self.search[(y * (self.width+1)) + x]
+        return None
 
-IType = InputItem
+IType = WordSearch
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
+DIRECTIONS = [(1,1),(1,0),(1,-1),(0,1),(0,-1),(-1,1),(-1,0),(-1,-1)]
 
-def star_one(data:list[IType]) -> str:
-    pass
+def parse_input(input_content:str) -> IType:
+    lines = input_content.splitlines()
+    return WordSearch(input_content,len(lines[0]),len(lines))
 
-def star_two(data:list[IType]) -> str:
+def xmas_coords(start_coord:tuple[int,int],d_offset:tuple[int,int],search:WordSearch) -> None|list[tuple[int,int]]:
+    retval = list()
+    for step, letter in enumerate("XMAS"):
+        x = start_coord[0] + (step * d_offset[0])
+        y = start_coord[1] + (step * d_offset[1])
+        if search.coordinate(x,y) != letter:
+            return None
+        retval.append((x,y))
+    return retval
+
+def find_xmas(start_coord:tuple[int,int],d_offset:tuple[int,int],search:WordSearch) -> bool:
+    return xmas_coords(start_coord,d_offset,search) is not None
+
+def star_one(data:IType) -> str:
+    print(data.width,data.height)
+    retval = 0
+    valids = set()
+    for y in range(data.height):
+        for x in range(data.width):
+            index = data.coordinate(x,y)
+            if index == 'X':
+                for d in DIRECTIONS:
+                    found = xmas_coords((x,y),d,data)
+                    if found is not None:
+                        retval += 1
+                        valids.update(found)
+    """for y in range(data.height):
+    for x in range(data.width):
+        if (x,y) in valids:
+            print(data.coordinate(x,y),end="")
+        else:
+            print(end=" ")
+    print()""" #uncomment to print out the locations of the "valid" letters.
+    
+    return f"{retval}"
+
+def star_two(data:IType) -> str:
     pass
 
 if __name__ == "__main__":
