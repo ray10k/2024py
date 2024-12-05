@@ -1,21 +1,47 @@
 from dataclasses import dataclass;
 
 @dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+class OrderRule:
+    """One pair of page-numbers that need to be in first-last order for the
+    entire sequence to be valid."""
+    left:int
+    right:int
 
-IType = InputItem
+IType = tuple[list[OrderRule],list[list[int]]]
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
+def parse_input(input_content:str) -> IType:
+    rules:list[OrderRule] = list()
+    sequences:list[list[int]] = list()
+    line_iter = iter(input_content.splitlines())
+    for order_line in line_iter:
+        if order_line == "":
+            break
+        left,right = order_line.split('|')
+        rules.append(OrderRule(int(left),int(right)))
+    
+    for sequence_line in line_iter:
+        line_values = [int(x) for x in sequence_line.split(',')]   
+        sequences.append(line_values)
+    
+    return (rules,sequences)
 
-def star_one(data:list[IType]) -> str:
-    pass
+def star_one(data:IType) -> str:
+    rules,sequences = data
+    retval = 0
+    for seq in sequences:
+        for rule in rules:
+            try:
+                l_index, r_index = seq.index(rule.left),seq.index(rule.right)
+                if l_index > r_index:
+                    break
+            except:
+                continue
+        else:
+            midpoint = int((len(seq) - 1) / 2)
+            retval += seq[midpoint]
+    return f"{retval}"
 
-def star_two(data:list[IType]) -> str:
+def star_two(data:IType) -> str:
     pass
 
 if __name__ == "__main__":
