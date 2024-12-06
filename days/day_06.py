@@ -1,21 +1,64 @@
-from dataclasses import dataclass;
+from dataclasses import dataclass
+from itertools import cycle
 
-@dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+@dataclass(frozen=True,unsafe_hash=True)
+class Coordinate:
+    """A single location in the map."""
+    x:int
+    y:int
 
-IType = InputItem
+# Locations of obstacles, guard's initial position, map height/width
+IType = tuple[set[Coordinate],Coordinate,tuple[int,int]]
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
+def print_map(obstacles:set[Coordinate],tiles:set[Coordinate],size:tuple[int,int]):
+    for y in range(size[1]):
+        for x in range(size[0]):
+            here = Coordinate(x,y)
+            if here in obstacles and here in tiles:
+                print("&",end="")
+            elif here in obstacles:
+                print("#",end="")
+            elif here in tiles:
+                print(".",end="")
+            else:
+                print(" ",end="")
+        print()
 
-def star_one(data:list[IType]) -> str:
-    pass
+def parse_input(input_content:str) -> IType:
+    obstacles = set()
+    guard = None
+    lines = input_content.splitlines()
+    for y,line in enumerate(lines):
+        for x,char in enumerate(line):
+            if char == "#":
+                obstacles.add(Coordinate(x,y))
+            elif char == '^':
+                guard = Coordinate(x,y)
+    return obstacles, guard, (len(lines[0]),len(lines))
 
-def star_two(data:list[IType]) -> str:
+def star_one(data:IType) -> str:
+    visited:set[Coordinate] = set()
+    obstacles, guard, (width,height) = data
+    print(f"Field size {width} x {height}")
+    def in_field(x:int,y:int) -> bool:
+        return x >= 0 and x < width and y >= 0 and y < height
+    direction = cycle(((0,-1),(1,0),(0,1),(-1,0)))
+    
+    while True:
+        facing = next(direction)
+        guard_n = guard
+        while guard_n not in obstacles and in_field(guard_n.x,guard_n.y):
+            visited.add(guard_n)
+            guard = guard_n
+            guard_n = Coordinate(guard_n.x + facing[0],guard_n.y + facing[1])
+        if not in_field(guard_n.x,guard_n.y):
+            break
+    
+    #print_map(obstacles,visited,(width,height))
+            
+    return f"{len(visited)}"
+
+def star_two(data:IType) -> str:
     pass
 
 if __name__ == "__main__":
