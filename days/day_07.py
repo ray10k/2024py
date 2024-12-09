@@ -1,4 +1,5 @@
 from dataclasses import dataclass;
+from itertools import product
 
 @dataclass(frozen=True)
 class Calibration:
@@ -16,18 +17,20 @@ class Calibration:
                 return False
         return retval == self.result
     
-    def concatenate(self,position:int) -> "Calibration":
-        if position <= 0 or position > (len(self.values) - 1):
-            return self
-        new_values = list()
-        new_values.extend(self.values[:position-1])
-        concat_l = self.values[position]
-        concat_r = self.values[position+1]
-        concat_result = (concat_l * 10 ** (len(str(concat_r))))+concat_r
-        new_values.append(concat_result)
-        new_values.extend(self.values[position+2:])
-        return Calibration(self.result,new_values)
-
+    def tri_calculate(self, tritfield:list[int]) -> bool:
+        retval = self.values[0]
+        for mask,value in zip(tritfield,self.values[1:]):
+            if mask == 0:
+                retval *= 10 ** len(str(value))
+                retval += value
+            elif mask == 1:
+                retval *= value
+            else:
+                retval += value
+            if retval > self.result:
+                return False
+        return retval == self.result
+    
 IType = Calibration
 
 def parse_input(input_content:str) -> list[IType]:
@@ -56,12 +59,10 @@ def star_two(data:list[IType]) -> str:
     
     for datum in data:
         bitcount = len(datum.values)
-        maximum = 2 ** (bitcount-1)
-        for bitfield in range(maximum+1):
-            if datum.calculate(bitfield):
+        for tritfield in product(range(3),repeat=bitcount-1):
+            if datum.tri_calculate(tritfield):
                 retval += datum.result
                 break
-    
     return f"{retval}"
 
 if __name__ == "__main__":
