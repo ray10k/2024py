@@ -1,22 +1,68 @@
 from dataclasses import dataclass;
 
-@dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+@dataclass(frozen=True)
+class Calibration:
+    result: int
+    values: list[int]
+    
+    def calculate(self, bitfield:int) -> bool:
+        retval = self.values[0]
+        for i,value in enumerate(self.values[1:]):
+            if (bitfield & (1<<i)):
+                retval += value
+            else:
+                retval *= value
+            if retval > self.result:
+                return False
+        return retval == self.result
+    
+    def concatenate(self,position:int) -> "Calibration":
+        if position <= 0 or position > (len(self.values) - 1):
+            return self
+        new_values = list()
+        new_values.extend(self.values[:position-1])
+        concat_l = self.values[position]
+        concat_r = self.values[position+1]
+        concat_result = (concat_l * 10 ** (len(str(concat_r))))+concat_r
+        new_values.append(concat_result)
+        new_values.extend(self.values[position+2:])
+        return Calibration(self.result,new_values)
 
-IType = InputItem
+IType = Calibration
 
 def parse_input(input_content:str) -> list[IType]:
-    return list()
+    retval:list[Calibration] = list()
+    for line in input_content.splitlines():
+        result,rest = line.split(':')
+        rest = rest.strip()
+        retval.append(Calibration(int(result),[int(x) for x in rest.split(' ')]))
+    return retval
 
 def star_one(data:list[IType]) -> str:
-    pass
+    retval = 0
+    
+    for datum in data:
+        bitcount = len(datum.values)
+        maximum = 2 ** (bitcount-1)
+        for bitfield in range(maximum+1):
+            if datum.calculate(bitfield):
+                retval += datum.result
+                break
+    
+    return f"{retval}"
 
 def star_two(data:list[IType]) -> str:
-    pass
+    retval = 0
+    
+    for datum in data:
+        bitcount = len(datum.values)
+        maximum = 2 ** (bitcount-1)
+        for bitfield in range(maximum+1):
+            if datum.calculate(bitfield):
+                retval += datum.result
+                break
+    
+    return f"{retval}"
 
 if __name__ == "__main__":
     from pathlib import Path
