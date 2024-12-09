@@ -47,7 +47,6 @@ def star_one(data:IType) -> str:
     visited:set[Coordinate] = set()
     obstacles, guard, (width,height) = data
     reach = reach_check(width,height)
-    print(f"Field size {width} x {height}")
     direction = cycle(((0,-1),(1,0),(0,1),(-1,0)))
     
     while True:
@@ -74,12 +73,17 @@ def star_two(data:IType) -> str:
     check = reach_check(width,height)
     
     insert_positions:set[Coordinate] = set()
+    visited:set[Coordinate] = set()
     
     while check(guard.x, guard.y):
         step = guard.step(heading[0:2])
         if step in obstacles:
             heading = next(main_direction)
-        else:
+            continue
+        elif step not in visited and check(step.x, step.y):
+            visited.add(step)
+            #This is the first time the guard would have tried to enter this square, so check if a loop
+            # can form here.
             #Treat the step as a ghost obstacle, and see if there is a collision that happens twice.
             
             inner_direction = cycle(directions)
@@ -98,8 +102,6 @@ def star_two(data:IType) -> str:
                     event = (inner_heading[2],inner_guard)
                     if event in colisions:
                         insert_positions.add(step)
-                        print(colisions)
-                        print(event)
                         break
                     else:
                         colisions.add(event)
@@ -107,7 +109,7 @@ def star_two(data:IType) -> str:
                 else:
                     inner_guard = inner_step
             colisions.clear()
-            guard = step
+        guard = step
     return f"{len(insert_positions)}"
 
 if __name__ == "__main__":
