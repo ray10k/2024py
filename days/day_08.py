@@ -1,22 +1,51 @@
 from dataclasses import dataclass;
+from itertools import permutations;
 
-@dataclass
-class InputItem:
+@dataclass(frozen=True,slots=True)
+class Coordinate:
     """Representation of one 'unit' of input-data. May represent as little
     as a single character from input, as much as the entire file, or anywhere
     inbetween."""
-    a: str
+    x:int
+    y:int
+    
+    def in_range(self, w:int, h:int) -> bool:
+        return self.x >= 0 and self.x < w and self.y >= 0 and self.y < h
 
-IType = InputItem
+IType = list[Coordinate]
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
+def parse_input(input_content:str) -> tuple[dict[str,IType],tuple[int,int]]:
+    width, height = 0,0
+    retval:dict[str,list[Coordinate]] = dict()
+    for y,line in enumerate(input_content.splitlines()):
+        width = len(line)
+        height += 1
+        for x,char in enumerate(line):
+            if char != '.':
+                if char not in retval:
+                    retval[char] = list()
+                retval[char].append(Coordinate(x,y))
+    
+    return retval, (width,height)
 
-def star_one(data:list[IType]) -> str:
-    pass
+def star_one(data:tuple[dict[str,IType],tuple[int,int]]) -> str:
+    antinodes:set[Coordinate] = set()
+    antennas, (width,height) = data
+    for value in antennas.values():
+        for a,b in permutations(value,2):
+            d_x = a.x - b.x
+            d_y = a.y - b.y
+            antinode = Coordinate(a.x+d_x,a.y+d_y)
+            if antinode.in_range(width,height):
+                antinodes.add(antinode)
+    return f"{len(antinodes)}"
 
-def star_two(data:list[IType]) -> str:
-    pass
+def star_two(data:tuple[dict[str,IType],tuple[int,int]]) -> str:
+    antinodes:set[Coordinate] = set()
+    antennas, (width,height) = data
+    
+    
+    return f"{len(antinodes)}"
 
 if __name__ == "__main__":
     from pathlib import Path
