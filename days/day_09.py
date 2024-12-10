@@ -1,5 +1,5 @@
 from dataclasses import dataclass;
-from typing import Literal;
+from collections import deque
 
 @dataclass
 class Block:
@@ -67,6 +67,44 @@ def star_one(data:list[IType]) -> str:
     return f"{retval}"
 
 def star_two(data:list[IType]) -> str:
+    # The logic for this defrag method is... odd. Very odd.
+    ordered:list[Block] = [b for b in data] #Copy the input, will be moving this around a bunch
+    max_id = max(blk.id for blk in data if blk.id is not None)
+
+    for to_move in range(max_id,-1,-1):
+        source = -1
+        src_len = -1
+        for index, blk in enumerate(ordered):
+            if blk.id == to_move:
+                source = index
+                src_len = blk.length
+                break
+        dest = -1
+        dst_len = -1
+        for index, blk in enumerate(ordered):
+            if blk.id is None and blk.length >= src_len:
+                dest = index
+                dst_len = blk.length
+                break
+            if index > source:
+                break
+        if dest == -1 or source < dest:
+            continue #No suitable destination. 
+        #Want to keep unallocated space contiguous...
+        #First, if the destination area exactly fits, move the file in there.
+        if src_len == dst_len:
+            ordered[dest].id = to_move
+            ordered[source].id = None
+        else:
+            #Otherwise: swap the blocks around, and add a new empty block to hold the additional free space.
+            new_empty = Block(dst_len - src_len)
+            ordered[dest],ordered[source] = ordered[source],ordered[dest]
+            ordered.insert(dest+1,new_empty)# this will wreak merry havoc on execution time :(
+            source += 1
+        
+
+
+
     pass
 
 if __name__ == "__main__":
