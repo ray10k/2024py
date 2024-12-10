@@ -43,7 +43,14 @@ def star_one(data:tuple[dict[str,IType],tuple[int,int]]) -> str:
 def star_two(data:tuple[dict[str,IType],tuple[int,int]]) -> str:
     antinodes:set[Coordinate] = set()
     antennas, (width,height) = data
-    
+    for group in antennas.values():
+        for a,b in permutations(group,2):
+            d_x = a.x - b.x
+            d_y = a.y - b.y
+            antinode = a
+            while antinode.in_range(width,height):
+                antinodes.add(antinode)
+                antinode = Coordinate(antinode.x+d_x,antinode.y+d_y)
     
     return f"{len(antinodes)}"
 
