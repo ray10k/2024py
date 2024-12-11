@@ -66,6 +66,56 @@ def star_one(data:list[IType]) -> str:
         retval += position * value
     return f"{retval}"
 
+@dataclass(slots=True)
+class LinkedBlock:
+    """Quickly slapped-together linked list implementation. Handle with care."""
+    length:int
+    prev:"LinkedBlock"|None = None
+    id:int|None = None
+    next:"LinkedBlock"|None = None
+    
+    def insert_after(self,other:"LinkedBlock"):
+        """Puts this node after a given node. Should only be done with a newly
+        made node, or a node that has been popped out."""
+        n = other.next
+        self.prev = other
+        other.next = self
+        self.next = n
+        if n is not None:
+            n.prev = self
+    
+    def append(self,other:"LinkedBlock"):
+        """Puts a node after a given node. Should only be done on the last
+        node in the list."""
+        self.next = other
+        other.prev = self
+    
+    def pop(self) -> "LinkedBlock":
+        """Remove this node from the list. 'safe' to use."""
+        n,p = self.next,self.prev
+        if n is not None:
+            n.prev = p
+        if p is not None:
+            p.next = n
+        self.next = None
+        self.prev = None
+        return self
+    
+    def __iter__(self):
+        return LinkedIterator(self)
+
+@dataclass
+class LinkedIterator:
+    current:LinkedBlock
+    
+    def __next__(self):
+        to_yield = self.current
+        if self.current is not None:
+            self.current = self.current.next
+            return to_yield
+        else:
+            raise StopIteration
+
 def star_two(data:list[IType]) -> str:
     # The logic for this defrag method is... odd. Very odd.
     ordered:list[Block] = [b for b in data] #Copy the input, will be moving this around a bunch
