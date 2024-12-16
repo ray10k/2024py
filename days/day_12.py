@@ -38,8 +38,7 @@ def parse_input(input_content:str) -> IType:
     w,h = len(lines[0]),len(lines)
     return GardenMap(input_content,h,w)
 
-
-def star_one(data:IType) -> str:
+def parse_plots(data:IType) -> list[GardenPlot]:
     visited:set[Point] = set()
     plots:list[GardenPlot] = list()
         
@@ -52,7 +51,6 @@ def star_one(data:IType) -> str:
             circumference:int = 0
             to_check:deque[Point] = deque()
             to_check.append(Point(x,y))
-            print(f"Looking for {cur_sym}, starting from {Point(x,y)}")
             while to_check:
                 here = to_check.popleft()
                 
@@ -70,10 +68,16 @@ def star_one(data:IType) -> str:
                 visited.add(here)
                 fields.add(here)
             plots.append(GardenPlot(cur_sym,fields,circumference))
+    return plots
+
+
+def star_one(data:IType) -> str:
+    plots = parse_plots(data)
     retval = sum(p.circumference * p.surface for p in plots)
     return f"{retval}"
 
 def star_two(data:IType) -> str:
+    plots = parse_plots(data)
     pass
 
 if __name__ == "__main__":
