@@ -1,5 +1,5 @@
 from dataclasses import dataclass;
-from collections import deque
+from typing import Iterator, Union
 
 @dataclass
 class Block:
@@ -27,7 +27,6 @@ def parse_input(input_content:str) -> list[IType]:
 
 def star_one(data:list[IType]) -> str:
     total_length:int = sum(block.length for block in data)
-    print(f"Total length: {total_length}")
     memory:list[int] = [-1] * total_length
     write_pointer:int = 0
     
@@ -37,8 +36,6 @@ def star_one(data:list[IType]) -> str:
             for i in range(block.length):
                 memory[i+write_pointer] = block.id
         write_pointer += block.length
-    print("blocks expanded.")
-    print(memory[0:100])
     
     #defragment
     write_pointer = 0
@@ -55,8 +52,6 @@ def star_one(data:list[IType]) -> str:
             write_pointer += 1
             continue
         swap(write_pointer,read_pointer)
-    print("memory defragmented.")
-    print(memory[0:100])
 
     #Calculate checksum
     retval = 0
@@ -66,46 +61,115 @@ def star_one(data:list[IType]) -> str:
         retval += position * value
     return f"{retval}"
 
-def star_two(data:list[IType]) -> str:
-    # The logic for this defrag method is... odd. Very odd.
-    ordered:list[Block] = [b for b in data] #Copy the input, will be moving this around a bunch
-    max_id = max(blk.id for blk in data if blk.id is not None)
+@dataclass(slots=True,repr=False)
+class LinkedBlock:
+    """Quickly slapped-together linked list implementation. Handle with care."""
+    length:int
+    id:int|None = None
+    prev:Union["LinkedBlock",None] = None
+    next:Union["LinkedBlock",None] = None
+    
+    def insert_after(self,other:"LinkedBlock"):
+        """Puts this node after a given node. Should only be done with a newly
+        made node, or a node that has been popped out."""
+        old_next = self.next
+        self.next = other
+        if other is not None:
+            other.prev = self
+            other.next = old_next
+        if old_next is not None:
+            old_next.prev = other
+    
+    def append(self,other:"LinkedBlock"):
+        """Puts a node after a given node. Should only be done on the last
+        node in the list."""
+        self.next = other
+        other.prev = self
+    
+    def pop(self) -> "LinkedBlock":
+        """Remove this node from the list. 'safe' to use."""
+        n,p = self.next,self.prev
+        if n is not None:
+            n.prev = p
+        if p is not None:
+            p.next = n
+        self.next = None
+        self.prev = None
+        return self
+    
+    def checksum(self,starting_index:int) -> int:
+        if self.id is None or self.id == 0:
+            return 0
+        return sum(self.id * (starting_index+i) for i in range(self.length))
+    
+    def get_iter(self,read_forward:bool) -> Iterator["LinkedBlock"]:
+        return LinkedIterator(self,read_forward)
+    
+    def __repr__(self):
+        return f"LinkedBlock({self.length},{self.id},{"other" if self.prev is not None else "None"},{"other" if self.next is not None else "None"})"
 
-    for to_move in range(max_id,-1,-1):
-        source = -1
-        src_len = -1
-        for index, blk in enumerate(ordered):
-            if blk.id == to_move:
-                source = index
-                src_len = blk.length
-                break
-        dest = -1
-        dst_len = -1
-        for index, blk in enumerate(ordered):
-            if blk.id is None and blk.length >= src_len:
-                dest = index
-                dst_len = blk.length
-                break
-            if index > source:
-                break
-        if dest == -1 or source < dest:
-            continue #No suitable destination. 
-        #Want to keep unallocated space contiguous...
-        #First, if the destination area exactly fits, move the file in there.
-        if src_len == dst_len:
-            ordered[dest].id = to_move
-            ordered[source].id = None
+@dataclass
+class LinkedIterator:
+    current:LinkedBlock
+    forward:bool
+    
+    def __next__(self):
+        to_yield = self.current
+        if self.current is not None:
+            self.current = getattr(self.current,"next" if self.forward else "prev")
+            return to_yield
         else:
-            #Otherwise: swap the blocks around, and add a new empty block to hold the additional free space.
-            new_empty = Block(dst_len - src_len)
-            ordered[dest],ordered[source] = ordered[source],ordered[dest]
-            ordered.insert(dest+1,new_empty)# this will wreak merry havoc on execution time :(
-            source += 1
+            raise StopIteration
         
+    def __iter__(self):
+        return self
 
-
-
-    pass
+def star_two(data:list[IType]) -> str:
+    max_id = max(d.id for d in data if d.id is not None)
+    
+    start = LinkedBlock(data[0].length,data[0].id)
+    current = start
+    
+    for blk in data[1:]:
+        newblock = LinkedBlock(blk.length,blk.id)
+        current.append(newblock)
+        current = newblock
+    end = current
+    #linked list constructed. Start moving things around.
+    for to_find in range(max_id,-1,-1):
+        source:LinkedBlock = None
+        for blk in end.get_iter(False):
+            if blk.id == to_find:
+                source = blk
+                break
+        #print(f"Found block with id {to_find}, length {source.length}")
+        dest:LinkedBlock = None
+        for blk in start.get_iter(True):
+            if blk is source:
+                break
+            elif blk.id is None and blk.length >= source.length:
+                dest = blk
+                break
+        
+        if dest is None:
+            continue
+        
+        diff = dest.length - source.length
+        
+        if diff > 0:
+            remainder = LinkedBlock(diff,None)
+            dest.insert_after(remainder)
+        dest.id = source.id
+        dest.length = source.length
+        source.id = None
+    retval = 0
+    offset = 0
+    for blk in start.get_iter(True):
+        retval += blk.checksum(offset)
+        offset += blk.length
+    
+    return f"{retval}"
+    
 
 if __name__ == "__main__":
     from pathlib import Path

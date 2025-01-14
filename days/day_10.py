@@ -1,22 +1,88 @@
-from dataclasses import dataclass;
+from collections import deque
 
-@dataclass
-class InputItem:
-    """Representation of one 'unit' of input-data. May represent as little
-    as a single character from input, as much as the entire file, or anywhere
-    inbetween."""
-    a: str
+Coord = tuple[int,int]
+IType = tuple[dict[Coord,int],int,int]
 
-IType = InputItem
+def parse_input(input_content:str) -> IType:
+    retval = dict()
+    h,w = 0,0
+    for y,line in enumerate(input_content.splitlines()):
+        h = max(h,y)
+        for x,char in enumerate(line):
+            w = max(w,x)
+            height = int(char)
+            retval[(x,y)] = height
+    return retval, h, w
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
+def star_one(data:IType) -> str:
+    path_map, h, w = data
+    starting_points:list[Coord] = list()
+    for position,height in path_map.items():
+        if height == 0:
+            starting_points.append(position)
+    hr = range(h+1)
+    wr = range(w+1)
+    
+    def r_check(x,y):
+        return x in wr and y in hr
+    
+    retval = 0
+    
+    for trialhead in starting_points:
+        ends:set[Coord] = set()
+        to_check:deque[Coord] = deque()
+        to_check.append(trialhead)
+        while to_check:
+            x,y = to_check.popleft()
+            z = path_map[(x,y)]
+            if z == 9:
+                ends.add((x,y))
+                continue
+            if r_check(x-1,y) and path_map[(x-1,y)] == z + 1:
+                to_check.append((x-1,y))
+            if r_check(x+1,y) and path_map[(x+1,y)] == z + 1:
+                to_check.append((x+1,y))
+            if r_check(x,y-1) and path_map[(x,y-1)] == z + 1:
+                to_check.append((x,y-1))
+            if r_check(x,y+1) and path_map[(x,y+1)] == z + 1:
+                to_check.append((x,y+1))
+        retval += len(ends)
+    return f"{retval}"
 
-def star_one(data:list[IType]) -> str:
-    pass
-
-def star_two(data:list[IType]) -> str:
-    pass
+def star_two(data:IType) -> str:
+    path_map, h, w = data
+    starting_points:list[Coord] = list()
+    for position,height in path_map.items():
+        if height == 0:
+            starting_points.append(position)
+    hr = range(h+1)
+    wr = range(w+1)
+    
+    def r_check(x,y):
+        return x in wr and y in hr
+    
+    retval = 0
+    
+    for trialhead in starting_points:
+        rating:int = 0
+        to_check:deque[Coord] = deque()
+        to_check.append(trialhead)
+        while to_check:
+            x,y = to_check.popleft()
+            z = path_map[(x,y)]
+            if z == 9:
+                rating += 1
+                continue
+            if r_check(x-1,y) and path_map[(x-1,y)] == z + 1:
+                to_check.append((x-1,y))
+            if r_check(x+1,y) and path_map[(x+1,y)] == z + 1:
+                to_check.append((x+1,y))
+            if r_check(x,y-1) and path_map[(x,y-1)] == z + 1:
+                to_check.append((x,y-1))
+            if r_check(x,y+1) and path_map[(x,y+1)] == z + 1:
+                to_check.append((x,y+1))
+        retval += rating
+    return f"{retval}"
 
 if __name__ == "__main__":
     from pathlib import Path
