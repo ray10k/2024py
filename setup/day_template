@@ -9,13 +9,13 @@ class InputItem:
 
 IType = InputItem
 
-def parse_input(input_content:str) -> list[IType]:
-    return list()
+def parse_input(input_content:str) -> IType:
+    return InputItem("none")
 
-def star_one(data:list[IType]) -> str:
+def star_one(data:IType) -> str:
     pass
 
-def star_two(data:list[IType]) -> str:
+def star_two(data:IType) -> str:
     pass
 
 if __name__ == "__main__":
