@@ -86,7 +86,6 @@ def star_one(data:list[IType]) -> str:
     retval = 0
 
     for game in data:
-        game.split_print()
         button_m = ButtonMatrix(game.button_a,game.button_b)
         x_rep = ButtonMatrix(game.prize_spot,game.button_b)
         y_rep = ButtonMatrix(game.button_a,game.prize_spot)
@@ -97,12 +96,29 @@ def star_one(data:list[IType]) -> str:
         a_press = x_rep.determinant() / det
         b_press = y_rep.determinant() / det
         if a_press <= 100 and b_press <= 100 and a_press.is_integer() and b_press.is_integer():
-            retval += a_press + (3*b_press)
+            retval += b_press + (3*a_press)
 
-    return f"{retval}"
+    return f"{int(retval)}"
 
 def star_two(data:list[IType]) -> str:
-    pass
+    retval = 0
+
+    for game in data:
+        o_prize = Point(10000000000000+game.prize_spot.x,10000000000000+game.prize_spot.y)
+        button_m = ButtonMatrix(game.button_a,game.button_b)
+
+        x_rep = ButtonMatrix(o_prize,game.button_b)
+        y_rep = ButtonMatrix(game.button_a,o_prize)
+
+        det = button_m.determinant()
+        if det == 0:
+            continue
+        a_press = int(x_rep.determinant()/det)
+        b_press = int(y_rep.determinant()/det)
+        if o_prize == button_m.result(a_press,b_press):
+            retval += b_press + (3*a_press)
+
+    return f"{retval}"
 
 if __name__ == "__main__":
     from pathlib import Path
